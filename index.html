@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="衣物搜尋｜少女風服飾穿搭與商品搜尋示範網站">
+<title>衣物搜尋 ♡ Find Your Style</title>
+<link rel="stylesheet" href="style.css">
+<script src="script.js" defer></script>
+</head>
+<body>
+<div class="announcement">♡ 每一天，都值得穿上喜歡的自己 ♡</div>
+<header class="header"><a href="#" class="brand" aria-label="回首頁"><span class="brand-icon">♕</span><span>衣物搜尋<small>Find Your Style ♡</small></span></a><nav aria-label="主要導覽"><a href="#home">首頁</a><a href="#categories">商品分類</a><a href="#new">最新上架</a><a href="#inspire">穿搭靈感</a><a href="#about">關於我們</a></nav><div class="actions"><button id="favoriteToggle" aria-label="只顯示收藏">♡ <span id="favoriteCount">0</span></button><button id="cartToggle" aria-label="購物車">🛍 <span id="cartCount">0</span></button></div></header>
+<main>
+<section id="home" class="hero"><div class="hero-content"><p class="eyebrow">BE YOUR OWN STYLE · 2026 COLLECTION</p><h1>找到屬於你的風格 <span>♡</span></h1><p>從今天開始，穿出更喜歡的自己</p><form id="searchForm" class="search-form"><div class="search-line"><label class="sr-only" for="keyword">商品名稱</label><input id="keyword" type="search" placeholder="搜尋洋裝、上衣、牛仔褲…"><button type="submit">⌕ 搜尋服飾</button></div><div class="filters"><label>顏色 <select id="color"><option value="">全部顏色</option></select></label><label>最高價格 <select id="price"><option value="999999">不限價格</option><option value="500">NT$ 500 以下</option><option value="1000">NT$ 1,000 以下</option><option value="2000">NT$ 2,000 以下</option><option value="3000">NT$ 3,000 以下</option></select></label><label>分類 <select id="category"><option value="">全部分類</option></select></label></div></form></div></section>
+<section id="categories" class="section"><div class="section-title"><div><p class="eyebrow">SHOP BY CATEGORY</p><h2>找到喜歡的單品 <span>♡</span></h2></div></div><div class="category-grid" id="categoryTiles"></div></section>
+<section class="promo-grid section" id="inspire"><article class="promo promo-one"><p>NEW SEASON</p><h2>溫柔日常・剛剛好的心動</h2><p>粉色系穿搭，讓日子多一點浪漫。</p><a href="#new">探索新品 →</a></article><article class="promo promo-two"><p>LOOK BOOK</p><h2>今天想穿什麼？</h2><p>挑選屬於你的每日穿搭靈感。</p><a href="#new">開始搭配 →</a></article></section>
+<section id="new" class="section"><div class="section-title"><div><p class="eyebrow">NEW ARRIVALS</p><h2>最新上架 <span>♥</span></h2><p id="resultCount" class="muted">載入商品中…</p></div><button class="text-button" id="resetSearch">清除篩選 ↗</button></div><div id="productGrid" class="product-grid"></div><div id="emptyState" class="empty" hidden>目前沒有符合條件的商品，試試其他搜尋條件 ♡</div></section>
+<section class="newsletter section"><p class="eyebrow">LITTLE MOMENTS, BIG STYLE</p><h2>把每一天，穿成喜歡的模樣 ♡</h2><p>柔和的色彩、喜歡的單品，還有獨一無二的你。</p></section>
+</main>
+<footer id="about"><div class="footer-inner"><div><strong>衣物搜尋 ♡</strong><p>Find Your Style — 少女風服飾搜尋教學網站</p></div><div><p>Google Colab × Python × TiDB Cloud × GitHub Pages</p><small>目前展示示範商品資料；資料庫即時查詢將於 API 串接階段啟用。</small></div></div></footer>
+<dialog id="cartDialog"><div class="dialog-head"><h2>我的購物車 ♡</h2><button id="closeCart" aria-label="關閉">✕</button></div><div id="cartItems"></div><p id="cartTotal"></p><p class="muted">購物車僅供課堂示範，尚未提供實際結帳服務。</p></dialog>
+</body></html>
