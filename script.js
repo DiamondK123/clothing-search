@@ -2,39 +2,69 @@
 const API_URL = "https://clothing-search-api-vk6q.onrender.com/api/clothing";
 const $ = id => document.getElementById(id);
 const categories = [["洋裝","👗","Dress"],["上衣","🎀","Tops"],["褲裝","👖","Pants"],["裙裝","🌸","Skirts"],["外套","🧥","Outer"],["配件","👜","Accessories"]];
-// 可靠的服飾示意圖：依商品類別繪製不同款式 SVG，不依賴可能失效的外部照片。
-const palettes = [
-  ["#f7d3df","#cf6e92"],["#e6d7ef","#9a77b7"],["#d6e9f2","#6c99b6"],
-  ["#f6e0c9","#bf916d"],["#e1e8d7","#87a18a"],["#f3d5d2","#bd797a"],
-  ["#e2ddf3","#8b83b5"],["#f8e6bd","#c9a35f"],["#d9e4ec","#7892aa"],
-  ["#f1d9e8","#b982a2"],["#e9e3d7","#a39887"],["#f4d8d8","#c88791"]
-];
-function garmentShape(category, name, fill, accent) {
-  const c = (category + " " + name).toLowerCase();
-  if (/褲|牛仔|pants|jeans/.test(c)) return `<path d="M112 75 L208 75 L220 252 L176 252 L160 147 L144 252 L100 252 Z" fill="${fill}" stroke="${accent}" stroke-width="4"/><path d="M160 75 V150 M118 94 H202" stroke="${accent}" stroke-width="3" fill="none"/>`;
-  if (/裙|skirt/.test(c) && !/洋裝|連身|dress/.test(c)) return `<path d="M124 80 H196 L231 249 Q160 270 89 249 Z" fill="${fill}" stroke="${accent}" stroke-width="4"/><path d="M123 101 H197 M146 112 L127 242 M174 112 L193 242" stroke="${accent}" stroke-width="3" fill="none"/>`;
-  if (/洋裝|連身|dress/.test(c)) return `<path d="M135 55 L151 76 H169 L185 55 L211 75 L197 124 L235 247 Q160 274 85 247 L123 124 L109 75 Z" fill="${fill}" stroke="${accent}" stroke-width="4"/><path d="M127 135 Q160 146 193 135 M160 78 V130" stroke="${accent}" stroke-width="3" fill="none"/>`;
-  if (/外套|大衣|夾克|jacket|coat/.test(c)) return `<path d="M130 57 L160 77 L190 57 L213 71 L248 171 L211 187 L199 140 L203 252 H117 L121 140 L109 187 L72 171 L107 71 Z" fill="${fill}" stroke="${accent}" stroke-width="4"/><path d="M160 77 L160 251 M130 57 L160 118 L190 57" fill="none" stroke="${accent}" stroke-width="3"/>`;
-  if (/包|鞋|配件|bag|accessor/.test(c)) return `<rect x="95" y="117" width="130" height="120" rx="19" fill="${fill}" stroke="${accent}" stroke-width="4"/><path d="M126 119 V95 A34 34 0 0 1 194 95 V119" fill="none" stroke="${accent}" stroke-width="9"/><path d="M110 170 H210" stroke="${accent}" stroke-width="3"/>`;
-  return `<path d="M131 65 L160 83 L189 65 L217 81 L252 143 L214 163 L196 133 L196 250 H124 V133 L106 163 L68 143 L103 81 Z" fill="${fill}" stroke="${accent}" stroke-width="4"/><path d="M131 65 Q160 110 189 65 M124 151 H196" fill="none" stroke="${accent}" stroke-width="3"/>`;
+// 依服飾類別分配真實攝影示意照；照片並非資料庫商品實拍。
+const photoCatalog = {
+  "洋裝": [
+    "photo-1539008835657-9e8e9680c956",
+    "photo-1515372039744-b8f02a3ae446",
+    "photo-1496747611176-843222e1e57c",
+    "photo-1595777457583-95e059d581b8"
+  ],
+  "上衣": [
+    "photo-1434389677669-e08b4cac3105",
+    "photo-1564257577-7cadc8e1a8d9",
+    "photo-1554568218-0f1715e72254",
+    "photo-1576566588028-4147f3842f27"
+  ],
+  "褲裝": [
+    "photo-1541099649105-f69ad21f3246",
+    "photo-1473966968600-fa801b869a1a",
+    "photo-1511196044526-5cb3bcb7071b",
+    "photo-1542272604-787c3835535d"
+  ],
+  "裙裝": [
+    "photo-1583496661160-fb5886a13d77",
+    "photo-1592301933927-35b597393c0a",
+    "photo-1503342217505-b0a15ec3261c",
+    "photo-1490481651871-ab68de25d43d"
+  ],
+  "外套": [
+    "photo-1591047139829-d91aecb6caea",
+    "photo-1544923246-77307dd654cb",
+    "photo-1539533018447-63fcce2678e3",
+    "photo-1529139574466-a303027c1d8b"
+  ],
+  "配件": [
+    "photo-1548036328-c9fa89d128fa",
+    "photo-1584917865442-de89df76afd3",
+    "photo-1515886657613-9f3515b0c78f",
+    "photo-1523381210434-271e8be1f52b"
+  ]
+};
+function photoCategory(category, name) {
+  const value = category + " " + name;
+  if (/洋裝|連身|dress/i.test(value)) return "洋裝";
+  if (/裙|skirt/i.test(value)) return "裙裝";
+  if (/褲|牛仔|pants|jeans/i.test(value)) return "褲裝";
+  if (/外套|大衣|夾克|coat|jacket/i.test(value)) return "外套";
+  if (/包|鞋|配件|bag|shoes/i.test(value)) return "配件";
+  return "上衣";
 }
 function productImage(id, category, name) {
+  const pool = photoCatalog[photoCategory(category, name)];
   let hash = 0;
-  for (const char of String(id)) hash = (Math.imul(hash, 31) + char.charCodeAt(0)) >>> 0;
-  const [light, dark] = palettes[hash % palettes.length];
-  const shape = garmentShape(category, name, light, dark);
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 390">
-  <defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#fffaf8"/><stop offset="1" stop-color="${light}"/></linearGradient></defs>
-  <rect width="320" height="390" fill="url(#bg)"/>
-  <circle cx="265" cy="55" r="64" fill="#fff" opacity=".42"/>
-  <circle cx="54" cy="322" r="80" fill="#fff" opacity=".32"/>
-  <ellipse cx="160" cy="289" rx="100" ry="14" fill="${dark}" opacity=".14"/>
-  <g transform="translate(0,22)">${shape}</g>
-  <text x="160" y="350" text-anchor="middle" font-family="Georgia,serif" font-size="15" fill="${dark}" letter-spacing="3">FIND YOUR STYLE</text>
-  </svg>`;
-  return "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg);
+  for (const ch of String(id)) hash = (Math.imul(hash, 33) + ch.charCodeAt(0)) >>> 0;
+  const photo = pool[hash % pool.length];
+  return "https://images.unsplash.com/" + photo + "?auto=format&fit=crop&w=650&q=80";
 }
-const fallbackImage = productImage("fallback","上衣","上衣");
+function missingPhoto(id) {
+  // 不以同一張人物照片作備援，避免所有卡片顯示相同圖片。
+  const hue = [...String(id)].reduce((n,c) => n + c.charCodeAt(0), 0) % 4;
+  const colors = ["#f8e3ea","#f5e9e0","#e9e3f1","#e3edf0"];
+  const bg = colors[hue];
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="520"><rect width="100%" height="100%" fill="' + bg + '"/><text x="50%" y="50%" font-family="sans-serif" font-size="18" text-anchor="middle" fill="#a87887">照片暫時無法載入</text></svg>';
+  return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+}
 const favorites = new Set();
 const cart = [];
 let products = [];
@@ -173,10 +203,10 @@ function renderProducts() {
     const card = make("article", "product-card");
     const imageWrap = make("div", "product-image");
     const image = make("img");
-    image.src = p.img; image.alt = p.name + "（依類別繪製的服飾示意插畫）"; image.loading = "lazy"; image.onerror = () => { image.onerror = null; image.src = fallbackImage; };
+    image.src = p.img; image.alt = p.name + "（服飾攝影示意）"; image.loading = "lazy"; image.onerror = () => { image.onerror = null; image.src = missingPhoto(p.id); };
     const fav = make("button", "favorite" + (favorites.has(p.id) ? " active" : ""), favorites.has(p.id) ? "♥" : "♡");
     fav.type = "button"; fav.dataset.action = "favorite"; fav.dataset.id = p.id; fav.setAttribute("aria-label", "收藏 " + p.name);
-    const demoTag = make("span", "photo-label", "款式示意");
+    const demoTag = make("span", "photo-label", "攝影示意");
     imageWrap.append(image, demoTag, fav);
     const info = make("div", "product-info");
     info.append(make("h3", "", p.name), make("p", "", [p.brand,p.category,p.color,p.size].join(" · ")));
