@@ -57,6 +57,15 @@ function productImage(id, category, name) {
   const photo = pool[hash % pool.length];
   return "https://images.unsplash.com/" + photo + "?auto=format&fit=crop&w=650&q=80";
 }
+function safeImageUrl(value) {
+  if (typeof value !== "string" || !value.trim()) return null;
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" ? url.href : null;
+  } catch {
+    return null;
+  }
+}
 function missingPhoto(id) {
   // 不以同一張人物照片作備援，避免所有卡片顯示相同圖片。
   const hue = [...String(id)].reduce((n,c) => n + c.charCodeAt(0), 0) % 4;
@@ -167,7 +176,7 @@ async function fetchProducts() {
       category: String(p.category_name), brand: String(p.brand_name),
       color: String(p.color), size: String(p.size),
       price: Number(p.price), stock: Number(p.stock_qty),
-      img: productImage(p.product_id, p.category_name, p.product_name)
+      img: safeImageUrl(p.image_url) || missingPhoto(p.product_id)
     }));
     // API 查詢結果會隨條件變動；保留已加入購物車的商品資料
     for (const p of products) productCache.set(p.id, p);
@@ -203,10 +212,10 @@ function renderProducts() {
     const card = make("article", "product-card");
     const imageWrap = make("div", "product-image");
     const image = make("img");
-    image.src = p.img; image.alt = p.name + "（服飾攝影示意）"; image.loading = "lazy"; image.onerror = () => { image.onerror = null; image.src = missingPhoto(p.id); };
+    image.src = p.img; image.alt = p.name + "（資料庫圖片）"; image.loading = "lazy"; image.onerror = () => { image.onerror = null; image.src = missingPhoto(p.id); };
     const fav = make("button", "favorite" + (favorites.has(p.id) ? " active" : ""), favorites.has(p.id) ? "♥" : "♡");
     fav.type = "button"; fav.dataset.action = "favorite"; fav.dataset.id = p.id; fav.setAttribute("aria-label", "收藏 " + p.name);
-    const demoTag = make("span", "photo-label", "攝影示意");
+    const demoTag = make("span", "photo-label", "商品圖片");
     imageWrap.append(image, demoTag, fav);
     const info = make("div", "product-info");
     info.append(make("h3", "", p.name), make("p", "", [p.brand,p.category,p.color,p.size].join(" · ")));
