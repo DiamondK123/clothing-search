@@ -2,7 +2,27 @@
 const API_URL = "https://clothing-search-api-vk6q.onrender.com/api/clothing";
 const $ = id => document.getElementById(id);
 const categories = [["洋裝","👗","Dress"],["上衣","🎀","Tops"],["褲裝","👖","Pants"],["裙裝","🌸","Skirts"],["外套","🧥","Outer"],["配件","👜","Accessories"]];
-const fallbackImage = "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=600&q=80";
+// 服飾示意照片：依商品編號分配不同圖片，非實際商品照片。
+const imageIds = [
+  "photo-1539008835657-9e8e9680c956",
+  "photo-1434389677669-e08b4cac3105",
+  "photo-1541099649105-f69ad21f3246",
+  "photo-1583496661160-fb5886a13d77",
+  "photo-1591047139829-d91aecb6caea",
+  "photo-1598554747436-c9293d6a588f",
+  "photo-1515372039744-b8f02a3ae446",
+  "photo-1576566588028-4147f3842f27",
+  "photo-1483985988355-763728e1935b",
+  "photo-1490481651871-ab68de25d43d",
+  "photo-1485968579580-b6d095142e6e",
+  "photo-1529139574466-a303027c1d8b"
+];
+function productImage(id) {
+  let hash = 0;
+  for (const char of String(id)) hash = (Math.imul(hash, 31) + char.charCodeAt(0)) >>> 0;
+  return "https://images.unsplash.com/" + imageIds[hash % imageIds.length] + "?auto=format&fit=crop&w=700&q=82";
+}
+const fallbackImage = "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=700&q=80";
 const favorites = new Set();
 const cart = [];
 let products = [];
@@ -105,7 +125,7 @@ async function fetchProducts() {
       category: String(p.category_name), brand: String(p.brand_name),
       color: String(p.color), size: String(p.size),
       price: Number(p.price), stock: Number(p.stock_qty),
-      img: fallbackImage
+      img: productImage(p.product_id)
     }));
     // API 查詢結果會隨條件變動；保留已加入購物車的商品資料
     for (const p of products) productCache.set(p.id, p);
@@ -141,12 +161,15 @@ function renderProducts() {
     const card = make("article", "product-card");
     const imageWrap = make("div", "product-image");
     const image = make("img");
-    image.src = p.img; image.alt = p.name; image.loading = "lazy";
+    image.src = p.img; image.alt = p.name + "（服飾示意圖片）"; image.loading = "lazy"; image.onerror = () => { image.onerror = null; image.src = fallbackImage; };
     const fav = make("button", "favorite" + (favorites.has(p.id) ? " active" : ""), favorites.has(p.id) ? "♥" : "♡");
     fav.type = "button"; fav.dataset.action = "favorite"; fav.dataset.id = p.id; fav.setAttribute("aria-label", "收藏 " + p.name);
-    imageWrap.append(image, fav);
+    const demoTag = make("span", "photo-label", "穿搭示意");
+    imageWrap.append(image, demoTag, fav);
     const info = make("div", "product-info");
     info.append(make("h3", "", p.name), make("p", "", [p.brand,p.category,p.color,p.size].join(" · ")));
+    const stockTag = make("span", "stock-tag", p.stock > 0 ? "現貨 " + p.stock + " 件" : "已售完");
+    info.append(stockTag);
     const priceRow = make("div", "price-row");
     const add = make("button", "add-cart", "＋");
     add.type = "button"; add.dataset.action = "cart"; add.dataset.id = p.id;
