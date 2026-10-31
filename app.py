@@ -54,7 +54,7 @@ def search_clothing():
     sql = """
         SELECT c.product_id, c.product_name, ca.category_name,
                b.brand_name, c.color, c.size, c.price, c.stock_qty,
-               c.listed_date
+               c.listed_date, c.image_url
         FROM clothing AS c
         JOIN categories AS ca ON c.category_id = ca.category_id
         JOIN brands AS b ON c.brand_id = b.brand_id
