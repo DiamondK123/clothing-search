@@ -74,6 +74,45 @@ function missingPhoto(id) {
   const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="520"><rect width="100%" height="100%" fill="' + bg + '"/><text x="50%" y="50%" font-family="sans-serif" font-size="18" text-anchor="middle" fill="#a87887">照片暫時無法載入</text></svg>';
   return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
 }
+function imageCandidates(product) {
+  const urls = [];
+  const add = value => {
+    const url = safeImageUrl(value);
+    if (url && !urls.includes(url)) urls.push(url);
+  };
+  // 先使用資料庫設定；失敗時嘗試相同類別的其他攝影示意照。
+  add(product.img);
+  const pool = photoCatalog[photoCategory(product.category, product.name)] || [];
+  let hash = 0;
+  for (const ch of product.id) hash = (Math.imul(hash, 33) + ch.charCodeAt(0)) >>> 0;
+  for (let i = 0; i < pool.length; i++) {
+    const id = pool[(hash + i) % pool.length];
+    add("https://images.unsplash.com/" + id + "?auto=format&fit=crop&w=650&q=80");
+  }
+  // 最後再嘗試跨類別候選圖，避免同類別圖片全部失效。
+  for (const id of [
+    "photo-1576566588028-4147f3842f27",
+    "photo-1539008835657-9e8e9680c956",
+    "photo-1541099649105-f69ad21f3246",
+    "photo-1591047139829-d91aecb6caea"
+  ]) add("https://images.unsplash.com/" + id + "?auto=format&fit=crop&w=650&q=80");
+  return urls;
+}
+function attachResilientImage(image, product) {
+  const urls = imageCandidates(product);
+  let index = 0;
+  image.onerror = () => {
+    index++;
+    if (index < urls.length) {
+      image.src = urls[index];
+    } else {
+      image.onerror = null;
+      image.src = missingPhoto(product.id);
+      console.warn("商品圖片所有備援網址均載入失敗:", product.id);
+    }
+  };
+  image.src = urls.length ? urls[0] : missingPhoto(product.id);
+}
 const favorites = new Set();
 const cart = [];
 let products = [];
@@ -212,7 +251,7 @@ function renderProducts() {
     const card = make("article", "product-card");
     const imageWrap = make("div", "product-image");
     const image = make("img");
-    image.src = p.img; image.alt = p.name + "（資料庫圖片）"; image.loading = "lazy"; image.onerror = () => { image.onerror = null; image.src = missingPhoto(p.id); };
+    image.alt = p.name + "（服飾攝影示意）"; image.loading = "lazy"; attachResilientImage(image, p);
     const fav = make("button", "favorite" + (favorites.has(p.id) ? " active" : ""), favorites.has(p.id) ? "♥" : "♡");
     fav.type = "button"; fav.dataset.action = "favorite"; fav.dataset.id = p.id; fav.setAttribute("aria-label", "收藏 " + p.name);
     const demoTag = make("span", "photo-label", "商品圖片");
